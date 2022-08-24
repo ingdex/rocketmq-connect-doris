@@ -30,7 +30,6 @@ import io.openmessaging.connector.api.errors.RetriableException;
 //import org.apache.rocketmq.connect.doris.sink.Updater;
 //import org.apache.rocketmq.connect.doris.exception.TableAlterOrCreateException;
 import org.apache.rocketmq.connect.doris.exception.TableAlterOrCreateException;
-import org.apache.rocketmq.connect.doris.schema.db.DbStructure;
 import org.apache.rocketmq.connect.doris.sink.Updater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

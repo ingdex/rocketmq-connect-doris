@@ -16,8 +16,6 @@
  */
 package org.apache.rocketmq.connect.doris.schema.column;
 
-import org.apache.rocketmq.connect.doris.schema.table.TableId;
-
 import java.sql.Types;
 import java.util.Objects;
 

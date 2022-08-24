@@ -22,24 +22,17 @@ import io.openmessaging.connector.api.errors.ConnectException;
 import org.apache.rocketmq.connect.doris.exception.DorisException;
 import org.apache.rocketmq.connect.doris.schema.table.TableId;
 import org.apache.rocketmq.connect.doris.connector.DorisSinkConfig;
-import org.apache.rocketmq.connect.doris.dialect.DatabaseDialect;
-//import org.apache.rocketmq.connect.doris.dialect.impl.GenericDatabaseDialect;
-import org.apache.rocketmq.connect.doris.schema.column.ColumnId;
 import org.apache.rocketmq.connect.doris.schema.db.DbStructure;
-import org.apache.rocketmq.connect.doris.schema.table.TableId;
-//import org.apache.rocketmq.connect.doris.sink.metadata.FieldsMetadata;
-//import org.apache.rocketmq.connect.doris.sink.metadata.SchemaPair;
 import org.apache.rocketmq.connect.doris.sink.metadata.FieldsMetadata;
 import org.apache.rocketmq.connect.doris.sink.metadata.SchemaPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -52,7 +45,7 @@ public class BufferedRecords {
 
     private final TableId tableId;
     private final DorisSinkConfig config;
-//    private final DatabaseDialect dbDialect;
+    //    private final DatabaseDialect dbDialect;
     private final DbStructure dbStructure;
 //    private final Connection connection;
 
@@ -63,7 +56,7 @@ public class BufferedRecords {
     private RecordValidator recordValidator;
     private List<ConnectRecord> updatePreparedRecords = new ArrayList<>();
     private List<ConnectRecord> deletePreparedRecords = new ArrayList<>();
-//    private DatabaseDialect.StatementBinder updateStatementBinder;
+    //    private DatabaseDialect.StatementBinder updateStatementBinder;
 //    private DatabaseDialect.StatementBinder deleteStatementBinder;
     private boolean deletesInBatch = false;
 
@@ -136,36 +129,6 @@ public class BufferedRecords {
                     tableId,
                     fieldsMetadata
             );
-//            final String insertSql = getInsertSql();
-//            final String deleteSql = getDeleteSql();
-//            log.debug(
-//                    "{} sql: {} deleteSql: {} meta: {}",
-//                    config.getInsertMode(),
-//                    insertSql,
-//                    deleteSql,
-//                    fieldsMetadata
-//            );
-//            close();
-//            updatePreparedRecords.add(DorisDialect.createPreparedRecord(record));
-//            updateStatementBinder = dbDialect.statementBinder(
-//                    updatePreparedStatement,
-//                    config.pkMode,
-//                    schemaPair,
-//                    fieldsMetadata,
-//                    dbStructure.tableDefinition(connection, tableId),
-//                    config.getInsertMode()
-//            );
-//            if (config.isDeleteEnabled() && nonNull(deleteSql)) {
-//                deletePreparedStatement = dbDialect.createPreparedStatement(connection, deleteSql);
-//                deleteStatementBinder = dbDialect.statementBinder(
-//                        deletePreparedStatement,
-//                        config.pkMode,
-//                        schemaPair,
-//                        fieldsMetadata,
-//                        dbStructure.tableDefinition(connection, tableId),
-//                        config.getInsertMode()
-//                );
-//            }
         }
 
         // set deletesInBatch if schema value is not null
@@ -207,13 +170,13 @@ public class BufferedRecords {
 //            if (dbDialect.name().equals(GenericDatabaseDialect.DialectName.generateDialectName(dbDialect.getDialectClass())) && totalUpdateCount.get() == 0) {
 //                // openMLDB execute success result 0; do nothing
 //            } else {
-                throw new ConnectException(
-                        String.format(
-                                "Update count (%d) did not sum up to total number of records inserted (%d)",
-                                totalUpdateCount.get(),
-                                expectedCount
-                        )
-                );
+            throw new ConnectException(
+                    String.format(
+                            "Update count (%d) did not sum up to total number of records inserted (%d)",
+                            totalUpdateCount.get(),
+                            expectedCount
+                    )
+            );
 //            }
         }
         if (!totalUpdateCount.isPresent()) {
@@ -238,12 +201,11 @@ public class BufferedRecords {
             return count;
         }
         StringBuilder updateJsonStringBuilder = new StringBuilder();
-        for (ConnectRecord record: updatePreparedRecords) {
-            updateJsonStringBuilder.append(DorisDialect.convertToUpdateJsonString(record, updateJsonStringBuilder.length() == 0));
-        }
-        if (updateJsonStringBuilder.length() != 0) {
+        for (ConnectRecord record : updatePreparedRecords) {
+            String jsonData = DorisDialect.convertToUpdateJsonString(record);
             try {
                 DorisStreamLoader loader = new DorisStreamLoader();
+                log.info("[executeUpdates]" + jsonData);
                 loader.loadJson(updateJsonStringBuilder.toString());
             } catch (DorisException e) {
                 log.error("executeUpdates failed");
@@ -251,7 +213,26 @@ public class BufferedRecords {
             } catch (Exception e) {
                 throw new DorisException("doris error");
             }
+            count = count.isPresent()
+                    ? count.map(total -> total + 1)
+                    : Optional.of(1L);
         }
+        // batch
+//        StringBuilder updateJsonStringBuilder = new StringBuilder();
+//        for (ConnectRecord record: updatePreparedRecords) {
+//            updateJsonStringBuilder.append(DorisDialect.convertToUpdateJsonString(record, updateJsonStringBuilder.length() == 0));
+//        }
+//        if (updateJsonStringBuilder.length() != 0) {
+//            try {
+//                DorisStreamLoader loader = new DorisStreamLoader();
+//                loader.loadJson(updateJsonStringBuilder.toString());
+//            } catch (DorisException e) {
+//                log.error("executeUpdates failed");
+//                throw e;
+//            } catch (Exception e) {
+//                throw new DorisException("doris error");
+//            }
+//        }
         return count;
     }
 
@@ -285,94 +266,4 @@ public class BufferedRecords {
                 .filter(record -> nonNull(record.getData()) || !config.isDeleteEnabled())
                 .count();
     }
-
-//    public void close() throws SQLException {
-//        log.debug(
-//                "Closing BufferedRecords with updatePreparedStatement: {} deletePreparedStatement: {}",
-//                updatePreparedStatement,
-//                deletePreparedStatement
-//        );
-//        if (nonNull(updatePreparedStatement)) {
-//            updatePreparedStatement.close();
-//            updatePreparedStatement = null;
-//        }
-//        if (nonNull(deletePreparedStatement)) {
-//            deletePreparedStatement.close();
-//            deletePreparedStatement = null;
-//        }
-//    }
-
-//    private String getInsertSql() {
-//        switch (config.getInsertMode()) {
-//            case INSERT:
-//                return dbDialect.buildInsertStatement(
-//                        tableId,
-//                        asColumns(fieldsMetadata.keyFieldNames),
-//                        asColumns(fieldsMetadata.nonKeyFieldNames)
-//                );
-//            case UPSERT:
-//                if (fieldsMetadata.keyFieldNames.isEmpty()) {
-//                    throw new ConnectException(String.format(
-//                            "Write to table '%s' in UPSERT mode requires key field names to be known, check the"
-//                                    + " primary key configuration",
-//                            tableId
-//                    ));
-//                }
-//                try {
-//                    return dbDialect.buildUpsertQueryStatement(
-//                            tableId,
-//                            asColumns(fieldsMetadata.keyFieldNames),
-//                            asColumns(fieldsMetadata.nonKeyFieldNames)
-//                    );
-//                } catch (UnsupportedOperationException e) {
-//                    throw new ConnectException(String.format(
-//                            "Write to table '%s' in UPSERT mode is not supported with the %s dialect.",
-//                            tableId,
-//                            dbDialect.name()
-//                    ));
-//                }
-//            case UPDATE:
-//                return dbDialect.buildUpdateStatement(
-//                        tableId,
-//                        asColumns(fieldsMetadata.keyFieldNames),
-//                        asColumns(fieldsMetadata.nonKeyFieldNames)
-//                );
-//            default:
-//                throw new ConnectException("Invalid insert mode");
-//        }
-//    }
-//
-//    private String getDeleteSql() {
-//        String sql = null;
-//        if (config.isDeleteEnabled()) {
-//            switch (config.pkMode) {
-//                case RECORD_KEY:
-//                    if (fieldsMetadata.keyFieldNames.isEmpty()) {
-//                        throw new ConnectException("Require primary keys to support delete");
-//                    }
-//                    try {
-//                        sql = dbDialect.buildDeleteStatement(
-//                                tableId,
-//                                asColumns(fieldsMetadata.keyFieldNames)
-//                        );
-//                    } catch (UnsupportedOperationException e) {
-//                        throw new ConnectException(String.format(
-//                                "Deletes to table '%s' are not supported with the %s dialect.",
-//                                tableId,
-//                                dbDialect.name()
-//                        ));
-//                    }
-//                    break;
-//                default:
-//                    throw new ConnectException("Deletes are only supported for pk.mode record_key");
-//            }
-//        }
-//        return sql;
-//    }
-//
-//    private Collection<ColumnId> asColumns(Collection<String> names) {
-//        return names.stream()
-//                .map(name -> new ColumnId(tableId, name))
-//                .collect(Collectors.toList());
-//    }
 }

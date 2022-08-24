@@ -22,7 +22,11 @@ package org.apache.rocketmq.connect.doris.config;
 import io.openmessaging.KeyValue;
 //import org.apache.rocketmq.connect.doris.util.QuoteMethod;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**

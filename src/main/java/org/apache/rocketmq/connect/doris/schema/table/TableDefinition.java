@@ -19,7 +19,9 @@ package org.apache.rocketmq.connect.doris.schema.table;
 import org.apache.rocketmq.connect.doris.schema.column.ColumnDefinition;
 import org.apache.rocketmq.connect.doris.util.TableType;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -27,7 +29,7 @@ import java.util.*;
  */
 public class TableDefinition {
     private final TableId id;
-//    private final Map<String, ColumnDefinition> columnsByName = new LinkedHashMap<>();
+    //    private final Map<String, ColumnDefinition> columnsByName = new LinkedHashMap<>();
     private final Map<String, String> pkColumnNames = new LinkedHashMap<>();
 //    private final TableType type;
 
@@ -38,11 +40,7 @@ public class TableDefinition {
 //        this(id, columns, TableType.TABLE);
 //    }
 
-    public TableDefinition(
-            TableId id,
-            Iterable<ColumnDefinition> columns,
-            TableType type
-    ) {
+    public TableDefinition(TableId id, Iterable<ColumnDefinition> columns, TableType type) {
         this.id = id;
 //        this.type = Objects.requireNonNull(type);
 //        for (ColumnDefinition defn : columns) {
@@ -100,19 +98,14 @@ public class TableDefinition {
         }
         if (obj instanceof TableDefinition) {
             TableDefinition that = (TableDefinition) obj;
-            return Objects.equals(this.id(), that.id())
-//                    && Objects.equals(this.type(), that.type())
-//                    && Objects.equals(this.definitionsForColumns(), that.definitionsForColumns())
-                    ;
+            return Objects.equals(this.id(), that.id());
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return String.format(
-                "Table{name='%s', type=%s columns=%s}",
-                id
+        return String.format("Table{name='%s', type=%s columns=%s}", id
 //                type,
 //                definitionsForColumns()
         );

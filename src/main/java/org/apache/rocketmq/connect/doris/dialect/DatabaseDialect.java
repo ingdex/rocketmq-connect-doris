@@ -29,15 +29,8 @@ import org.apache.rocketmq.connect.doris.dialect.provider.ConnectionProvider;
 //import org.apache.rocketmq.connect.doris.sink.metadata.FieldsMetadata;
 //import org.apache.rocketmq.connect.doris.sink.metadata.SchemaPair;
 //import org.apache.rocketmq.connect.doris.sink.metadata.SinkRecordField;
-import org.apache.rocketmq.connect.doris.util.ExpressionBuilder;
 import org.apache.rocketmq.connect.doris.util.IdentifierRules;
 
-import java.io.IOException;
-import java.sql.*;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * database dialect

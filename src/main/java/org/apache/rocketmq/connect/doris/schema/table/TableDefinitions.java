@@ -16,11 +16,9 @@
  */
 package org.apache.rocketmq.connect.doris.schema.table;
 
-import org.apache.rocketmq.connect.doris.dialect.DatabaseDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;

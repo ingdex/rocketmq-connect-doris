@@ -23,7 +23,14 @@ import io.openmessaging.connector.api.data.Schema;
 import io.openmessaging.connector.api.errors.ConnectException;
 import org.apache.rocketmq.connect.doris.connector.DorisSinkConfig;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**

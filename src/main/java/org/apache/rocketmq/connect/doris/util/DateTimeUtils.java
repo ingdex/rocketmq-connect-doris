@@ -17,7 +17,12 @@
 package org.apache.rocketmq.connect.doris.util;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.GregorianCalendar;
+import java.util.Date;
 
 public class DateTimeUtils {
 
