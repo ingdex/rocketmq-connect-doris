@@ -59,6 +59,7 @@ public class BufferedRecords {
     //    private DatabaseDialect.StatementBinder updateStatementBinder;
 //    private DatabaseDialect.StatementBinder deleteStatementBinder;
     private boolean deletesInBatch = false;
+    private DorisStreamLoader loader;
 
     public BufferedRecords(
             DorisSinkConfig config,
@@ -71,6 +72,7 @@ public class BufferedRecords {
         this.dbStructure = dbStructure;
 //        this.connection = connection;
         this.recordValidator = RecordValidator.create(config);
+        this.loader = DorisStreamLoader.create(config);
     }
 
     /**
@@ -124,11 +126,11 @@ public class BufferedRecords {
                     schemaPair
             );
             // create or alter table
-            dbStructure.createOrAmendIfNecessary(
-                    config,
-                    tableId,
-                    fieldsMetadata
-            );
+//            dbStructure.createOrAmendIfNecessary(
+//                    config,
+//                    tableId,
+//                    fieldsMetadata
+//            );
         }
 
         // set deletesInBatch if schema value is not null
@@ -204,9 +206,9 @@ public class BufferedRecords {
         for (ConnectRecord record : updatePreparedRecords) {
             String jsonData = DorisDialect.convertToUpdateJsonString(record);
             try {
-                DorisStreamLoader loader = new DorisStreamLoader();
+//                DorisStreamLoader loader = new DorisStreamLoader();
                 log.info("[executeUpdates]" + jsonData);
-                loader.loadJson(updateJsonStringBuilder.toString());
+                loader.loadJson(jsonData, record.getSchema().getName());
             } catch (DorisException e) {
                 log.error("executeUpdates failed");
                 throw e;
@@ -247,8 +249,8 @@ public class BufferedRecords {
 //        }
         if (deleteJsonStringBuilder.length() != 0) {
             try {
-                DorisStreamLoader loader = new DorisStreamLoader();
-                loader.loadJson(deleteJsonStringBuilder.toString());
+//                DorisStreamLoader loader = new DorisStreamLoader();
+//                loader.loadJson(deleteJsonStringBuilder.toString());
             } catch (DorisException e) {
                 log.error("executeUpdates failed");
                 throw e;

@@ -83,7 +83,7 @@ public class Updater {
                 BufferedRecords buffer = bufferByTable.get(tableId);
                 if (buffer == null) {
                     buffer = new BufferedRecords(config, tableId, dbStructure);
-//                    bufferByTable.put(tableId, buffer);
+                    bufferByTable.put(tableId, buffer);
                 }
                 buffer.add(record);
             }

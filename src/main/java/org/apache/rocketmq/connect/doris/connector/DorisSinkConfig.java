@@ -50,7 +50,11 @@ public class DorisSinkConfig extends AbstractConfig {
         RECORD_KEY,
         RECORD_VALUE;
     }
-
+    public static final String HOST = "host";
+    public static final String PORT = "port";
+    public static final String DATABASE = "database";
+    public static final String USER = "user";
+    public static final String PASSWD = "passwd";
     public static final String TABLE_NAME_FORMAT = "table.name.format";
     public static final String TABLE_NAME_FORMAT_DEFAULT = "${topic}";
     private static final String TABLE_NAME_FORMAT_DISPLAY = "Table Name Format";
@@ -183,8 +187,40 @@ public class DorisSinkConfig extends AbstractConfig {
     private TimeZone timeZone;
     private EnumSet<TableType> tableTypes;
 
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getPasswd() {
+        return passwd;
+    }
+
+    private String host;
+    private int port;
+    private String database;
+    private String user;
+    private String passwd;
+
     public DorisSinkConfig(KeyValue config) {
         super(config);
+        host = config.getString(HOST).trim();
+        port = config.getInt(PORT);
+        database = config.getString(DATABASE).trim();
+        user = config.getString(USER).trim();
+        passwd = config.getString(PASSWD).trim();
+
         tableNameFormat = config.getString(TABLE_NAME_FORMAT, TABLE_NAME_FORMAT_DEFAULT).trim();
         tableFromHeader = getBoolean(config, TABLE_NAME_FROM_HEADER, false);
         batchSize = config.getInt(BATCH_SIZE, BATCH_SIZE_DEFAULT);
@@ -209,8 +245,6 @@ public class DorisSinkConfig extends AbstractConfig {
         String dbTimeZone = config.getString(DB_TIMEZONE_CONFIG, DB_TIMEZONE_DEFAULT);
         timeZone = TimeZone.getTimeZone(ZoneId.of(dbTimeZone));
         tableTypes = TableType.parse(getList(config, TABLE_TYPES_CONFIG, TABLE_TYPES_DEFAULT));
-
-
     }
 
     public String getTableNameFormat() {

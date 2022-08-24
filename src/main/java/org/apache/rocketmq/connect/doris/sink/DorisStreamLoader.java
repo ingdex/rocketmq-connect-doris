@@ -19,20 +19,15 @@ package org.apache.rocketmq.connect.doris.sink;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.rocketmq.connect.doris.connector.DorisSinkConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -44,22 +39,31 @@ import java.util.UUID;
 public class DorisStreamLoader {
     private static final Logger log = LoggerFactory.getLogger(DorisStreamLoader.class);
     // FE IP Address
-    private final static String HOST = "10.220.146.10";
+    private String host;
     // FE port
-    private final static int PORT = 8030;
+    private int port;
     // db name
-    private final static String DATABASE = "test_2";
+    private String database;
     // table name
-    private final static String TABLE = "doris_test_sink";
+    private String table;
     //user name
-    private final static String USER = "root";
+    private String user;
     //user password
-    private final static String PASSWD = "";
-    //The path of the local file to be imported
-    private final static String LOAD_FILE_NAME = "c:/es/1.csv";
-
+    private String passwd;
     //http path of stream load task submission
-    private final static String LOADURL = String.format("http://%s:%s/api/%s/%s/_stream_load", HOST, PORT, DATABASE, TABLE);
+    private final String loadUrlWithoutTable;
+    private DorisStreamLoader(String host, int port, String database, String user, String passwd) {
+        this.host = host;
+        this.port = port;
+        this.database = database;
+        this.user = user;
+        this.passwd = passwd;
+        this.loadUrlWithoutTable = String.format("http://%s:%s/api/%s", host, port, database);
+    }
+
+    public static DorisStreamLoader create(DorisSinkConfig config) {
+        return new DorisStreamLoader(config.getHost(), config.getPort(), config.getDatabase(), config.getUser(), config.getPasswd());
+    }
 
     //Build http client builder
     private final HttpClientBuilder httpClientBuilder = HttpClients.custom().setRedirectStrategy(new DefaultRedirectStrategy() {
@@ -70,42 +74,10 @@ public class DorisStreamLoader {
         }
     });
 
-    /**
-     * File import
-     *
-     * @param file
-     * @throws Exception
-     */
-    public void load(File file) throws Exception {
-        try (CloseableHttpClient client = httpClientBuilder.build()) {
-            HttpPut put = new HttpPut(LOADURL);
-            put.removeHeaders(HttpHeaders.CONTENT_LENGTH);
-            put.removeHeaders(HttpHeaders.TRANSFER_ENCODING);
-            put.setHeader(HttpHeaders.EXPECT, "100-continue");
-            put.setHeader(HttpHeaders.AUTHORIZATION, basicAuthHeader(USER, PASSWD));
-
-            // You can set stream load related properties in the Header, here we set label and column_separator.
-            put.setHeader("label", UUID.randomUUID().toString());
-            put.setHeader("column_separator", ",");
-
-            // Set up the import file. Here you can also use StringEntity to transfer arbitrary data.
-            FileEntity entity = new FileEntity(file);
-            put.setEntity(entity);
-
-            try (CloseableHttpResponse response = client.execute(put)) {
-                String loadResult = "";
-                if (response.getEntity() != null) {
-                    loadResult = EntityUtils.toString(response.getEntity());
-                }
-
-                final int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode != 200) {
-                    throw new IOException(String.format("Stream load failed. status: %s load result: %s", statusCode, loadResult));
-                }
-                log.info("Get load result: " + loadResult);
-            }
-        }
+    private String getLoadURL(String table) {
+        return String.format("%s/%s/_stream_load", loadUrlWithoutTable, table);
     }
+
 
     /**
      * JSON import
@@ -113,13 +85,13 @@ public class DorisStreamLoader {
      * @param jsonData
      * @throws Exception
      */
-    public void loadJson(String jsonData) throws Exception {
+    public void loadJson(String jsonData, String table) throws Exception {
         try (CloseableHttpClient client = httpClientBuilder.build()) {
-            HttpPut put = new HttpPut(LOADURL);
+            HttpPut put = new HttpPut(getLoadURL(table));
             put.removeHeaders(HttpHeaders.CONTENT_LENGTH);
             put.removeHeaders(HttpHeaders.TRANSFER_ENCODING);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
-            put.setHeader(HttpHeaders.AUTHORIZATION, basicAuthHeader(USER, PASSWD));
+            put.setHeader(HttpHeaders.AUTHORIZATION, basicAuthHeader(user, passwd));
 
             // You can set stream load related properties in the Header, here we set label and column_separator.
             put.setHeader("label", UUID.randomUUID().toString());
@@ -130,17 +102,6 @@ public class DorisStreamLoader {
             StringEntity entity = new StringEntity(jsonData);
             put.setEntity(entity);
             log.info(put.toString());
-//            try (CloseableHttpResponse response = client.execute(put)) {
-//                String loadResult = "";
-//                if (response.getEntity() != null) {
-//                    loadResult = EntityUtils.toString(response.getEntity());
-//                }
-//
-//                final int statusCode = response.getStatusLine().getStatusCode();
-//                if (statusCode != 200) {
-//                    throw new IOException(String.format("Stream load failed. status: %s load result: %s", statusCode, loadResult));
-//                }
-//            }
         }
     }
 
@@ -159,13 +120,13 @@ public class DorisStreamLoader {
 
 
     public static void main(String[] args) throws Exception {
-        DorisStreamLoader loader = new DorisStreamLoader();
+        DorisStreamLoader loader = new DorisStreamLoader("host", 8080, "DATABASE", "USER", "PASSWD");
         //file load
         //File file = new File(LOAD_FILE_NAME);
         //loader.load(file);
         //json load
         String jsonData = "{\"id\":556393582,\"number\":\"123344\",\"price\":\"23.5\",\"skuname\":\"test\",\"skudesc\":\"zhangfeng_test,test\"}";
-        loader.loadJson(jsonData);
+        loader.loadJson(jsonData, "table");
 
     }
 }

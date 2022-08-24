@@ -62,32 +62,48 @@ public class DorisDialect {
             case INT32:
             case INT64:
             case FLOAT32:
-                keyValue.put(field.getName(), value.toString());
+                if (value == null) {
+                    keyValue.put(field.getName(), "null");
+                } else {
+                    keyValue.put(field.getName(), value.toString());
+                }
                 break;
             case STRING:
-                keyValue.put(field.getName(), (String) value);
+                if (value == null) {
+                    keyValue.put(field.getName(), "null");
+                } else {
+                    keyValue.put(field.getName(), (String) value);
+                }
                 break;
             case BYTES:
-                final byte[] bytes;
-                if (value instanceof ByteBuffer) {
-                    final ByteBuffer buffer = ((ByteBuffer) value).slice();
-                    bytes = new byte[buffer.remaining()];
-                    buffer.get(bytes);
+                if (value == null) {
+                    keyValue.put(field.getName(), "null");
                 } else {
-                    bytes = (byte[]) value;
+                    final byte[] bytes;
+                    if (value instanceof ByteBuffer) {
+                        final ByteBuffer buffer = ((ByteBuffer) value).slice();
+                        bytes = new byte[buffer.remaining()];
+                        buffer.get(bytes);
+                    } else {
+                        bytes = (byte[]) value;
+                    }
+                    keyValue.put(field.getName(), Arrays.toString(bytes));
                 }
-                keyValue.put(field.getName(), Arrays.toString(bytes));
                 break;
             case DATETIME:
-                java.sql.Date date;
-                if (value instanceof java.util.Date) {
-                    date = new java.sql.Date(((java.util.Date) value).getTime());
+                if (value == null) {
+                    keyValue.put(field.getName(), "null");
                 } else {
-                    date = new java.sql.Date((int) value);
+                    java.sql.Date date;
+                    if (value instanceof java.util.Date) {
+                        date = new java.sql.Date(((java.util.Date) value).getTime());
+                    } else {
+                        date = new java.sql.Date((int) value);
+                    }
+                    keyValue.put(
+                            field.getName(), date.toString()
+                    );
                 }
-                keyValue.put(
-                        field.getName(), date.toString()
-                );
                 break;
             default:
                 throw new TableAlterOrCreateException("Field type not found " + field);
