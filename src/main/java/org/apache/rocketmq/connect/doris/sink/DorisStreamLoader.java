@@ -19,15 +19,19 @@ package org.apache.rocketmq.connect.doris.sink;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.rocketmq.connect.doris.connector.DorisSinkConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -102,6 +106,18 @@ public class DorisStreamLoader {
             StringEntity entity = new StringEntity(jsonData);
             put.setEntity(entity);
             log.info(put.toString());
+            try (CloseableHttpResponse response = client.execute(put)) {
+                String loadResult = "";
+                if (response.getEntity() != null) {
+                    loadResult = EntityUtils.toString(response.getEntity());
+                }
+
+                final int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode != 200) {
+                    throw new IOException(String.format("Stream load failed. status: %s load result: %s", statusCode, loadResult));
+                }
+                log.info("Get load result: " + loadResult);
+            }
         }
     }
 
@@ -120,13 +136,10 @@ public class DorisStreamLoader {
 
 
     public static void main(String[] args) throws Exception {
-        DorisStreamLoader loader = new DorisStreamLoader("host", 8080, "DATABASE", "USER", "PASSWD");
-        //file load
-        //File file = new File(LOAD_FILE_NAME);
-        //loader.load(file);
+        DorisStreamLoader loader = new DorisStreamLoader("47.97.179.18", 7030, "db_1", "root", "rocketmq666");
         //json load
         String jsonData = "{\"id\":556393582,\"number\":\"123344\",\"price\":\"23.5\",\"skuname\":\"test\",\"skudesc\":\"zhangfeng_test,test\"}";
-        loader.loadJson(jsonData, "table");
+        loader.loadJson(jsonData, "doris_test_sink");
 
     }
 }

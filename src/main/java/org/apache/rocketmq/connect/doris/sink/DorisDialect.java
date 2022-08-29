@@ -22,6 +22,8 @@ import io.openmessaging.connector.api.data.Field;
 import io.openmessaging.connector.api.data.Struct;
 import org.apache.rocketmq.connect.doris.exception.TableAlterOrCreateException;
 import com.alibaba.fastjson.JSON;
+
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -84,6 +86,9 @@ public class DorisDialect {
                         final ByteBuffer buffer = ((ByteBuffer) value).slice();
                         bytes = new byte[buffer.remaining()];
                         buffer.get(bytes);
+                    } else if (value instanceof BigDecimal) {
+                        keyValue.put(field.getName(), value.toString());
+                        break;
                     } else {
                         bytes = (byte[]) value;
                     }
