@@ -83,60 +83,60 @@ public class BufferedRecords {
      * @throws SQLException
      */
     public List<ConnectRecord> add(ConnectRecord record) throws SQLException {
-        recordValidator.validate(record);
+//        recordValidator.validate(record);
         final List<ConnectRecord> flushed = new ArrayList<>();
-        boolean schemaChanged = false;
-        if (!Objects.equals(keySchema, record.getKeySchema())) {
-            keySchema = record.getKeySchema();
-            schemaChanged = true;
-        }
-        if (isNull(record.getSchema())) {
-            // For deletes, value and optionally value schema come in as null.
-            // We don't want to treat this as a schema change if key schemas is the same
-            // otherwise we flush unnecessarily.
-            if (config.isDeleteEnabled()) {
-                deletesInBatch = true;
-            }
-        } else if (Objects.equals(schema, record.getSchema())) {
-            if (config.isDeleteEnabled() && deletesInBatch) {
-                // flush so an insert after a delete of same record isn't lost
-                flushed.addAll(flush());
-            }
-        } else {
-            // value schema is not null and has changed. This is a real schema change.
-            schema = record.getSchema();
-            schemaChanged = true;
-        }
-
-        if (schemaChanged) {
-            // Each batch needs to have the same schemas, so get the buffered records out
-            flushed.addAll(flush());
-            // re-initialize everything that depends on the record schema
-            final SchemaPair schemaPair = new SchemaPair(
-                    record.getKeySchema(),
-                    record.getSchema(),
-                    record.getExtensions()
-            );
-            // extract field
-            fieldsMetadata = FieldsMetadata.extract(
-                    tableId.tableName(),
-                    config.pkMode,
-                    config.getPkFields(),
-                    config.getFieldsWhitelist(),
-                    schemaPair
-            );
-            // create or alter table
-//            dbStructure.createOrAmendIfNecessary(
-//                    config,
-//                    tableId,
-//                    fieldsMetadata
+//        boolean schemaChanged = false;
+//        if (!Objects.equals(keySchema, record.getKeySchema())) {
+//            keySchema = record.getKeySchema();
+//            schemaChanged = true;
+//        }
+//        if (isNull(record.getSchema())) {
+//            // For deletes, value and optionally value schema come in as null.
+//            // We don't want to treat this as a schema change if key schemas is the same
+//            // otherwise we flush unnecessarily.
+//            if (config.isDeleteEnabled()) {
+//                deletesInBatch = true;
+//            }
+//        } else if (Objects.equals(schema, record.getSchema())) {
+//            if (config.isDeleteEnabled() && deletesInBatch) {
+//                // flush so an insert after a delete of same record isn't lost
+//                flushed.addAll(flush());
+//            }
+//        } else {
+//            // value schema is not null and has changed. This is a real schema change.
+//            schema = record.getSchema();
+//            schemaChanged = true;
+//        }
+//
+//        if (schemaChanged) {
+//            // Each batch needs to have the same schemas, so get the buffered records out
+//            flushed.addAll(flush());
+//            // re-initialize everything that depends on the record schema
+//            final SchemaPair schemaPair = new SchemaPair(
+//                    record.getKeySchema(),
+//                    record.getSchema(),
+//                    record.getExtensions()
 //            );
-        }
+//            // extract field
+//            fieldsMetadata = FieldsMetadata.extract(
+//                    tableId.tableName(),
+//                    config.pkMode,
+//                    config.getPkFields(),
+//                    config.getFieldsWhitelist(),
+//                    schemaPair
+//            );
+//            // create or alter table
+////            dbStructure.createOrAmendIfNecessary(
+////                    config,
+////                    tableId,
+////                    fieldsMetadata
+////            );
+//        }
 
         // set deletesInBatch if schema value is not null
-        if (isNull(record.getData()) && config.isDeleteEnabled()) {
-            deletesInBatch = true;
-        }
+//        if (isNull(record.getData()) && config.isDeleteEnabled()) {
+//            deletesInBatch = true;
+//        }
 
         records.add(record);
         if (records.size() >= config.getBatchSize()) {

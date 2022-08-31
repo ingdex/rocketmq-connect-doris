@@ -27,9 +27,9 @@ POST  http://${runtime-ip}:${runtime-port}/connectors/${rocketmq-jdbc-source-con
     "mode": "incrementing",
     "incrementing.column.name":"id",
     "timestamp.initial": -1,
-    "source-record-converter":"org.apache.rocketmq.connect.runtime.converter.JsonConverter",
-    "key-converter":"org.apache.rocketmq.connect.runtime.converter.record.json.JsonConverter",
-    "value-converter":"org.apache.rocketmq.connect.runtime.converter.record.json.JsonConverter"
+    "source-record-converter":"org.apache.rocketmq.connect.doris.converter.JsonConverter",
+    "key-converter":"org.apache.rocketmq.connect.doris.converter.record.json.JsonConverter",
+    "value-converter":"org.apache.rocketmq.connect.doris.converter.record.json.JsonConverter"
 }
 ```
 
@@ -50,9 +50,9 @@ POST  http://${runtime-ip}:${runtime-port}/connectors/${rocketmq-jdbc-sink-conne
     "db.timezone":"UTC",
     "table.types":"TABLE",
     "auto.create":"true",
-    "source-record-converter":"org.apache.rocketmq.connect.runtime.converter.JsonConverter",
-    "key-converter":"org.apache.rocketmq.connect.runtime.converter.record.json.JsonConverter",
-    "value-converter":"org.apache.rocketmq.connect.runtime.converter.record.json.JsonConverter"
+    "source-record-converter":"org.apache.rocketmq.connect.doris.converter.JsonConverter",
+    "key-converter":"org.apache.rocketmq.connect.doris.converter.record.json.JsonConverter",
+    "value-converter":"org.apache.rocketmq.connect.doris.converter.record.json.JsonConverter"
 }
 ```
 
@@ -82,7 +82,7 @@ http://${runtime-ip}:${runtime-port}/connectors/${rocketmq-jdbc-connector-name}/
 |timestamp.column.name        | String  | YES           |时间增量字段 | modified_time |
 |table.whitelist              | String  | YES           |需要扫描的表 | db.table,db.table01 |
 |max-task                     | Integer | YES           |任务数量，最大不能大于表的数量 | 2 |
-|source-record-converter      | Integer | YES           |data转换器  | org.apache.rocketmq.connect.runtime.converter.JsonConverter |
+|source-record-converter      | Integer | YES           |data转换器  | org.apache.rocketmq.connect.doris.converter.JsonConverter |
 
 ```  
 注：1.source拉取的数据写入到以表名自动创建的topic中，如果需要写入特定的topic中则需要指定"connect-topicname" 参数
@@ -103,7 +103,7 @@ http://${runtime-ip}:${runtime-port}/connectors/${rocketmq-jdbc-connector-name}/
 |pk.mode                      | String  | NO           |获取主键的模式 | none、record_value |
 |insert.mode                  | Integer | YES           |写入模式 | UPDATE、UPSERT、INSERT |
 |max-task                     | Integer | NO           |任务数量 | 2 |
-|source-record-converter      | Integer | YES          |data转换器  | org.apache.rocketmq.connect.runtime.converter.JsonConverter |
+|source-record-converter      | Integer | YES          |data转换器  | org.apache.rocketmq.connect.doris.converter.JsonConverter |
 
 ```  
 注: openMLDB maven包的引入：
