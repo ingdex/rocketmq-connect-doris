@@ -208,7 +208,7 @@ public class BufferedRecords {
             try {
 //                DorisStreamLoader loader = new DorisStreamLoader();
                 log.info("[executeUpdates]" + jsonData);
-                loader.loadJson(jsonData, record.getSchema().getName());
+                loader.loadJson(jsonData, config.getTableName());
             } catch (DorisException e) {
                 log.error("executeUpdates failed");
                 throw e;

@@ -166,6 +166,7 @@ public class DorisSinkConfig extends AbstractConfig {
 
     // white list tables
     public static final String TABLE_WHITE_LIST_CONFIG = "tables.whitelist";
+    public static final String TABLE_NAME = "tableName";
     public static final String TABLE_WHITE_LIST_DEFAULT = "";
     private static final String TABLE_WHITE_LIST_DOC =
             "Table white list.<br>db1.table01,db1.table02</br>";
@@ -186,6 +187,12 @@ public class DorisSinkConfig extends AbstractConfig {
     private Set<String> tableWhitelist;
     private TimeZone timeZone;
     private EnumSet<TableType> tableTypes;
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    private String tableName;
 
     public String getHost() {
         return host;
@@ -245,6 +252,7 @@ public class DorisSinkConfig extends AbstractConfig {
         String dbTimeZone = config.getString(DB_TIMEZONE_CONFIG, DB_TIMEZONE_DEFAULT);
         timeZone = TimeZone.getTimeZone(ZoneId.of(dbTimeZone));
         tableTypes = TableType.parse(getList(config, TABLE_TYPES_CONFIG, TABLE_TYPES_DEFAULT));
+        this.tableName = config.getString(TABLE_NAME).trim();
     }
 
     public String getTableNameFormat() {
