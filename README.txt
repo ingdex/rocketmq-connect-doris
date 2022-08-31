@@ -17,20 +17,25 @@ mvn clean package -Dmaven.test.skip=true
 ```
 POST  http://${runtime-ip}:${runtime-port}/connectors/${rocketmq-jdbc-source-connector-name}
 {
-    "connector-class":"org.apache.rocketmq.connect.jdbc.connector.JdbcSourceConnector",
-    "connect-topicname":"topicname",
+    "connector.class":"org.apache.rocketmq.connect.doris.connector.DorisSinkConnector",
     "max-task":"1",
-    "connection.url":"jdbc:mysql://XXXXXXXXX:3306",
-    "connection.user":"*****",
-    "connection.password":"*****",
-    "table.whitelist":"db.table",
-    "mode": "incrementing",
-    "incrementing.column.name":"id",
-    "timestamp.initial": -1,
-    "source-record-converter":"org.apache.rocketmq.connect.doris.converter.JsonConverter",
-    "key-converter":"org.apache.rocketmq.connect.doris.converter.record.json.JsonConverter",
-    "value-converter":"org.apache.rocketmq.connect.doris.converter.record.json.JsonConverter"
+    "tableName":"doris_test_sink",
+    "connect.topicname":"doris_test_sink",
+    "connect.topicnames":"doris_test_sink",
+    "host":"xx.xx.xx.xx",
+    "port":"7030",
+    "user":"***",
+    "passwd":"***",
+    "database":"dbname",
+    "insert.mode":"INSERT",
+    "db.timezone":"UTC",
+    "table.types":"TABLE",
+    "auto.create":"true",
+    "source-record-converter":"org.apache.rocketmq.connect.runtime.converter.JsonConverter",
+    "key-converter":"org.apache.rocketmq.connect.runtime.converter.record.json.JsonConverter",
+    "value-converter":"org.apache.rocketmq.connect.runtime.converter.record.json.JsonConverter"}
 }
+
 ```
 
 * **doris-sink-connector** 启动
@@ -96,15 +101,12 @@ http://${runtime-ip}:${runtime-port}/connectors/${rocketmq-jdbc-connector-name}/
 |connection.url               | String  | YES           | sink端 jdbc连接          | jdbc:mysql://XXXXXXXXX:3306|
 |connection.user              | String  | YES           | sink端 DB 用户名 | root |
 |connection.password          | String  | YES           | sink端 DB 密码   | root |
-|connection.attempts          | String  | NO           | sink端 DB连接重试次数 | 3 |
-|connection.backoff.ms        | Long    | NO           |  |
-|connect-topicname            | Long    | YES          |监听的topic  | topic-name |
-|pk.fields                     | String  | NO           |写入侧主键配置，用于更新使用 | id |
-|pk.mode                      | String  | NO           |获取主键的模式 | none、record_value |
-|insert.mode                  | Integer | YES           |写入模式 | UPDATE、UPSERT、INSERT |
+|host            | String    | YES          |doris host  | 192.168.0.1 |
+|port            | String    | YES          |doris http port  | 8030 |
+|user            | String    | YES          |监听的topic  | root |
+|passwd            | String    | YES          |监听的topic  | passwd |
 |max-task                     | Integer | NO           |任务数量 | 2 |
 |source-record-converter      | Integer | YES          |data转换器  | org.apache.rocketmq.connect.doris.converter.JsonConverter |
-
 ```  
 注: openMLDB maven包的引入：
 ---------MacOS 系统下运行-------------
