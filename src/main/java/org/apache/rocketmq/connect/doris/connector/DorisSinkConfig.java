@@ -186,13 +186,6 @@ public class DorisSinkConfig extends AbstractConfig {
     private Set<String> tableWhitelist;
     private TimeZone timeZone;
     private EnumSet<TableType> tableTypes;
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    private String tableName;
-
     public String getHost() {
         return host;
     }
@@ -251,7 +244,6 @@ public class DorisSinkConfig extends AbstractConfig {
         String dbTimeZone = config.getString(DB_TIMEZONE_CONFIG, DB_TIMEZONE_DEFAULT);
         timeZone = TimeZone.getTimeZone(ZoneId.of(dbTimeZone));
         tableTypes = TableType.parse(getList(config, TABLE_TYPES_CONFIG, TABLE_TYPES_DEFAULT));
-        this.tableName = config.getString(TABLE_NAME).trim();
     }
 
     public String getTableNameFormat() {

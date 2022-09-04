@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class DorisDialect {
@@ -45,12 +44,10 @@ public class DorisDialect {
 
     public static String convertToUpdateJsonString(ConnectRecord record) {
         try {
-            String str = (String) record.getData();
-            List<String> kvs = Arrays.asList(str.split("\\{")[1].split("\\}")[0].split(","));
+            Struct struct = (Struct) record.getData();
             Map<String, String> keyValue = new HashMap<>();
-            for (String entry : kvs) {
-                String[] kv = entry.split("=");
-                keyValue.put(kv[0], kv[1]);
+            for (Field field: struct.getSchema().getFields()) {
+                bindValue(keyValue, field, struct.getValues()[field.getIndex()]);
             }
             return JSON.toJSON(keyValue).toString();
         } catch (TableAlterOrCreateException tace) {
