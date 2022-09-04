@@ -22,7 +22,6 @@ import io.openmessaging.connector.api.data.Field;
 import io.openmessaging.connector.api.data.Struct;
 import org.apache.rocketmq.connect.doris.exception.TableAlterOrCreateException;
 import com.alibaba.fastjson.JSON;
-
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -54,6 +53,15 @@ public class DorisDialect {
                 keyValue.put(kv[0], kv[1]);
             }
             return JSON.toJSON(keyValue).toString();
+        } catch (TableAlterOrCreateException tace) {
+            throw tace;
+        }
+    }
+
+    public static String convertToDeleteJsonString(ConnectRecord record) {
+        try {
+            // it seems that doris doesn't support delete via stream load
+            return "";
         } catch (TableAlterOrCreateException tace) {
             throw tace;
         }
@@ -117,5 +125,4 @@ public class DorisDialect {
                 throw new TableAlterOrCreateException("Field type not found " + field);
         }
     }
-
 }
